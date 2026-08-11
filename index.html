@@ -1139,10 +1139,13 @@ function renderImportar(app){
     <hr class="sep">
     <h2>Backup e restauração</h2>
     <p class="sub">Exporte todos os seus dados (inclui streak e progresso) ou restaure a partir de um backup (substitui tudo).</p>
-    <div class="actions">
+    <div class="actions" style="margin-bottom:14px">
       <button class="subtle" onclick="exportBackup()">Exportar backup (.json)</button>
-      <input type="file" id="restoreFile" accept=".json,application/json" class="hidden" onchange="restoreBackup(event)">
-      <button class="subtle" onclick="document.getElementById('restoreFile').click()">Restaurar backup…</button>
+    </div>
+    <div class="field">
+      <label for="restoreFile">Restaurar backup — substitui todos os dados atuais</label>
+      <input type="file" id="restoreFile" accept=".json,application/json" onchange="restoreBackup(event)">
+      <div class="note">Toque para escolher o arquivo <code>.json</code> do backup (funciona no iPad).</div>
     </div>`;
 }
 function importMsg(text, ok){ const el=document.getElementById('importMsg'); if(el) el.innerHTML=`<div class="msg ${ok?'ok':'err'}">${esc(text)}</div>`; }
