@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App de Estudos</title>
+<style>
+  :root{
+    --bg:#f4f5f7;
+    --surface:#ffffff;
+    --border:#e2e5ea;
+    --text:#1f2430;
+    --muted:#6b7280;
+    --accent:#3b6ea5;
+    --accent-soft:#eaf1f8;
+    --success:#3f8f5b;
+    --success-soft:#e8f3ec;
+    --warn:#b26a3d;
+    --warn-soft:#fbeee7;
+    --locked:#aab1bd;
+    --radius:12px;
+    --shadow:0 1px 3px rgba(20,30,50,.06), 0 4px 16px rgba(20,30,50,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#15181e;
+      --surface:#1e222b;
+      --border:#2c313c;
+      --text:#e6e9ef;
+      --muted:#9aa2b1;
+      --accent:#6fa3d6;
+      --accent-soft:#242e3b;
+      --success:#66b884;
+      --success-soft:#1e2a23;
+      --warn:#d79a6f;
+      --warn-soft:#33261d;
+      --locked:#565f6d;
+      --shadow:0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:20px 18px 90px}
+
+  header.topbar{position:sticky;top:0;z-index:20;background:var(--bg);padding:14px 0 12px;border-bottom:1px solid var(--border);margin-bottom:20px}
+  .topbar-inner{max-width:720px;margin:0 auto;padding:0 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .brand{font-weight:700;font-size:18px;letter-spacing:-.01em;cursor:pointer;flex:1;min-width:150px}
+  .brand small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+  .toolbtns{display:flex;gap:6px;flex-wrap:wrap}
+  .toolbtns button{padding:7px 11px;font-size:13px}
+
+  button{font:inherit;cursor:pointer;border:none;border-radius:10px;padding:10px 16px;background:var(--accent);color:#fff;font-weight:600;transition:opacity .15s, transform .05s}
+  button:hover{opacity:.92}
+  button:active{transform:translateY(1px)}
+  button.ghost{background:transparent;color:var(--accent);padding:8px 10px}
+  button.subtle{background:var(--surface);color:var(--text);border:1px solid var(--border);font-weight:500}
+  button.success{background:var(--success)}
+  button.danger{background:transparent;color:#c0392b;border:1px solid #c0392b;font-weight:600}
+  button.danger:hover{background:#c0392b;color:#fff;opacity:1}
+  @media (prefers-color-scheme: dark){button.danger{color:#e07a6f;border-color:#e07a6f}button.danger:hover{background:#e07a6f;color:#1e222b}}
+  button.warn{background:var(--warn)}
+  button:disabled{opacity:.5;cursor:default}
+  button.big{width:100%;padding:18px;font-size:17px;border-radius:14px}
+
+  .crumbs{font-size:13px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .crumbs a{color:var(--accent);cursor:pointer;text-decoration:none}
+  .crumbs a:hover{text-decoration:underline}
+
+  h1{font-size:24px;margin:0 0 6px;letter-spacing:-.02em}
+  h2{font-size:19px;margin:0 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 20px}
+  .section-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:24px 0 10px}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow);cursor:pointer;transition:border-color .15s, transform .05s}
+  .card:hover{border-color:var(--accent)}
+  .card:active{transform:translateY(1px)}
+  .card.static{cursor:default}
+  .card.static:hover{border-color:var(--border)}
+  .card-row{display:flex;align-items:center;gap:12px}
+  .card-title{font-weight:600;font-size:16px;flex:1}
+  .card-meta{font-size:13px;color:var(--muted);margin-top:2px}
+
+  .progress{height:8px;border-radius:99px;background:var(--border);overflow:hidden;margin-top:10px}
+  .progress > span{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+  .progress.done > span{background:var(--success)}
+  .pct{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  .badge{display:inline-block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+  .badge.prova{background:var(--warn-soft);color:var(--warn)}
+  .badge.exercicio{background:#efeafc;color:#7a5bd0}
+  .badge.dur{background:var(--border);color:var(--muted)}
+  .badge.ok{background:var(--success-soft);color:var(--success)}
+  @media (prefers-color-scheme: dark){.badge.exercicio{background:#28223a;color:#a68be0}}
+
+  .streak{display:inline-flex;align-items:center;gap:7px;background:var(--warn-soft);color:var(--warn);border-radius:99px;padding:6px 14px;font-weight:700;font-size:14px}
+  .streak .flame{font-size:16px}
+
+  .prova-alert{display:flex;align-items:center;gap:10px;background:var(--warn-soft);color:var(--warn);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:14px;font-weight:600}
+  .prova-alert .days{margin-left:auto;font-variant-numeric:tabular-nums}
+
+  .step-dot{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;background:var(--border);color:var(--muted)}
+  .step-dot.done{background:var(--success);color:#fff}
+  .step-dot.current{background:var(--accent);color:#fff;box-shadow:0 0 0 4px var(--accent-soft)}
+  .locked{opacity:.55}
+  .locked .card-title{color:var(--locked)}
+  .current-hint{font-size:12px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.03em}
+
+  .content{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:20px}
+  .content h1,.content h2,.content h3{margin-top:1.2em}
+  .content h1:first-child,.content h2:first-child,.content h3:first-child{margin-top:0}
+  .content p{margin:.7em 0}
+  .content ul,.content ol{margin:.7em 0;padding-left:1.4em}
+  .content li{margin:.3em 0}
+  .content code{background:var(--accent-soft);padding:1px 6px;border-radius:5px;font-size:.9em}
+  .content pre{background:var(--accent-soft);padding:12px 14px;border-radius:8px;overflow:auto}
+  .content pre code{background:none;padding:0}
+  .content a{color:var(--accent)}
+  .content blockquote{border-left:3px solid var(--border);margin:.7em 0;padding:2px 14px;color:var(--muted)}
+  .content strong{font-weight:700}
+
+  .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+  label{display:block;font-weight:600;font-size:14px;margin:0 0 6px}
+  input[type=text],input[type=date],input[type=number],textarea,select{width:100%;font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;resize:vertical}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)}
+  textarea{min-height:220px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+  .field{margin-bottom:16px}
+  .note{font-size:13px;color:var(--muted);margin-top:6px}
+  .inline-field{display:flex;align-items:center;gap:8px}
+  .inline-field select,.inline-field input{width:auto}
+
+  .grade-box{background:var(--success-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:20px}
+  .grade-box input{max-width:220px}
+
+  .empty{text-align:center;color:var(--muted);padding:50px 20px}
+  .empty h2{color:var(--text)}
+
+  .msg{padding:10px 14px;border-radius:10px;font-size:14px;margin-bottom:14px}
+  .msg.ok{background:var(--success-soft);color:var(--success)}
+  .msg.err{background:#fbeae8;color:#b23b3b}
+  @media (prefers-color-scheme: dark){.msg.err{background:#331e1e;color:#e08a8a}}
+
+  .hidden{display:none !important}
+  hr.sep{border:none;border-top:1px solid var(--border);margin:24px 0}
+  .file-input{margin-top:8px}
+
+  /* Medalha (emblema de jogo) / perfil / conquistas */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;box-shadow:var(--shadow)}
+  .stat-num{font-size:30px;font-weight:800;letter-spacing:-.02em}
+  .stat-lbl{font-size:13px;color:var(--muted);margin-top:2px}
+  .rank-badge{display:flex;align-items:center;gap:8px;cursor:pointer}
+  .rank-badge .rank-txt{font-size:12px;font-weight:600;line-height:1.15;color:var(--text)}
+  .rank-badge .rank-txt b{display:block;font-size:15px}
+  .rank-badge .rank-txt small{color:var(--muted);font-weight:500}
+
+  .medal{width:156px;height:156px;margin:0 auto;display:block}
+  .medal.mini{width:42px;height:42px;margin:0}
+  .medal svg{width:100%;height:100%;overflow:visible}
+  .medal .burst{animation:spin 24s linear infinite;transform-origin:60px 60px}
+  .medal .spk{opacity:0}
+  .medal.animate{animation:medalPop .85s cubic-bezier(.2,1.3,.4,1)}
+  @keyframes medalPop{0%{transform:scale(.5) rotate(-18deg);opacity:.15}55%{transform:scale(1.18) rotate(6deg)}100%{transform:scale(1) rotate(0)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes twinkle{0%,100%{opacity:.25}50%{opacity:1}}
+  .medal.lvl-3 svg{filter:drop-shadow(0 1px 5px rgba(230,179,37,.55))}
+  .medal.lvl-4 svg{filter:drop-shadow(0 1px 6px rgba(150,200,215,.6))}
+  .medal.lvl-5 svg{filter:drop-shadow(0 1px 8px rgba(127,208,255,.7))}
+  .medal.lvl-5 .spk{opacity:1;animation:twinkle 1.7s ease-in-out infinite}
+
+  /* Conquistas */
+  .ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .ach{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;opacity:.5;transition:opacity .3s,border-color .3s}
+  .ach.on{opacity:1;border-color:var(--accent)}
+  .ach-ic{font-size:26px;line-height:1}
+  .ach-nm{font-weight:700;font-size:13px;margin-top:6px}
+  .ach-ds{font-size:11px;color:var(--muted);margin-top:1px}
+  .ach-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);z-index:150;background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:12px 16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;max-width:90%;opacity:0;transition:opacity .3s,transform .3s}
+  .ach-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* Timer / foco */
+  .timer-start{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--accent-soft);border-radius:12px;padding:12px 14px;margin-bottom:16px}
+  .timer-start .lbl{font-weight:600;font-size:14px;color:var(--accent)}
+  .timer-start input[type=number]{width:70px}
+
+  .focusbar{position:fixed;top:0;left:0;right:0;z-index:60;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;gap:14px;padding:10px 16px;font-weight:700;font-variant-numeric:tabular-nums;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+  .focusbar .time{font-size:20px}
+  .focusbar button{background:rgba(255,255,255,.2);padding:5px 12px;font-size:13px}
+
+  .overlay{position:fixed;inset:0;z-index:100;background:rgba(15,20,30,.92);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:24px}
+  .overlay .box{background:var(--surface);border-radius:18px;padding:34px 30px;text-align:center;max-width:360px;width:100%;box-shadow:var(--shadow)}
+  .overlay .big-time{font-size:64px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;margin:10px 0}
+  .overlay p{color:var(--muted)}
+
+  .celebrate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
+  .celebrate .check{width:120px;height:120px;border-radius:50%;background:var(--success);color:#fff;font-size:64px;display:flex;align-items:center;justify-content:center;transform:scale(0);animation:pop .62s ease}
+  @keyframes pop{0%{transform:scale(0);opacity:0}40%{transform:scale(1.15);opacity:1}70%{transform:scale(.95);opacity:1}100%{transform:scale(1);opacity:0}}
+
+  /* Modo foco */
+  body.focus-mode header.topbar{display:none}
+  body.focus-mode .focus-hide{display:none !important}
+  .exit-focus{position:fixed;top:12px;right:14px;z-index:30}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand" onclick="go('hoje')">📚 App de Estudos<small>uso local · offline</small></div>
+    <div id="rankBadge" class="rank-badge hidden" onclick="go('perfil')" title="Ver perfil"></div>
+    <div class="toolbtns">
+      <button class="subtle" onclick="go('hoje')">Hoje</button>
+      <button class="subtle" onclick="go('dashboard')">Cursos</button>
+      <button class="subtle" onclick="go('perfil')">Perfil</button>
+      <button class="subtle" onclick="go('importar')">Importar</button>
+      <button class="subtle" onclick="exportBackup()">Backup</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<!-- Elementos persistentes (timer/foco/comemoração) -->
+<div id="focusBar" class="focusbar hidden"></div>
+<div id="breakOverlay" class="overlay hidden"></div>
+<div id="levelUpOverlay" class="overlay hidden"></div>
+<div id="celebrate" class="celebrate hidden"></div>
+<div id="achToast" class="ach-toast hidden"></div>
+
+<script>
+/* ============================================================
+   App de Estudos v2 — foco em TDAH — arquivo único, offline
+   ============================================================ */
+const STORAGE_KEY = 'app-estudos-v1';
+const STATE_KEY   = 'app-estudos-nav-v1';
+
+/* ---- Regras de pontuação (ajustáveis) ---- */
+const PONTOS = { ETAPA:10, PROVA:25, STREAK_DIA:5 };
+/* ---- Níveis (thresholds progressivos) ---- */
+const LEVELS = [
+  { n:1, min:0,    nome:'Bronze'   },
+  { n:2, min:100,  nome:'Prata'    },
+  { n:3, min:250,  nome:'Ouro'     },
+  { n:4, min:500,  nome:'Platina'  },
+  { n:5, min:1000, nome:'Diamante' }
+];
+/* Paleta metálica de cada tier (para os gradientes da medalha) */
+const TIERS = [
+  { light:'#f0b17d', base:'#c47a3d', dark:'#7e4a20', ring:'#a4622e', star:'#ffe0bd' },
+  { light:'#f6f8fb', base:'#b9c0c9', dark:'#79818b', ring:'#9aa2ac', star:'#ffffff' },
+  { light:'#ffe488', base:'#e6b325', dark:'#9c7410', ring:'#c8981a', star:'#fff6cf' },
+  { light:'#eafaff', base:'#a7c3cc', dark:'#6b858d', ring:'#88a6ae', star:'#ffffff' },
+  { light:'#e9f9ff', base:'#7fd0ff', dark:'#3f86c0', ring:'#57a9e1', star:'#ffffff' }
+];
+/* Prestígio infinito após o nível 5 */
+const NIVEL5_MIN = 1000, PRESTIGE_STEP = 1000;
+/* Conquistas (marcos) — derivadas do que o app já rastreia */
+const CONQUISTAS = [
+  { id:'e1',   icon:'📖', nome:'Primeiro passo',     desc:'Conclua 1 etapa',      test:s=>s.etapas>=1   },
+  { id:'e10',  icon:'📚', nome:'Pegando o ritmo',    desc:'Conclua 10 etapas',    test:s=>s.etapas>=10  },
+  { id:'e50',  icon:'🎓', nome:'Dedicado',           desc:'Conclua 50 etapas',    test:s=>s.etapas>=50  },
+  { id:'e100', icon:'🏛️', nome:'Erudito',            desc:'Conclua 100 etapas',   test:s=>s.etapas>=100 },
+  { id:'p1',   icon:'📝', nome:'Primeira prova',     desc:'Registre 1 prova',     test:s=>s.provas>=1   },
+  { id:'p10',  icon:'🏆', nome:'Veterano de provas', desc:'Registre 10 provas',   test:s=>s.provas>=10  },
+  { id:'s7',   icon:'🔥', nome:'Uma semana',         desc:'Streak de 7 dias',     test:s=>s.streakMax>=7  },
+  { id:'s30',  icon:'🌟', nome:'Um mês em chamas',   desc:'Streak de 30 dias',    test:s=>s.streakMax>=30 },
+  { id:'lvl5', icon:'💎', nome:'Diamante',           desc:'Alcance o nível 5',    test:s=>s.nivel>=5    },
+  { id:'pr1',  icon:'👑', nome:'Prestígio',          desc:'Alcance o Prestígio I',test:s=>s.prestige>=1 },
+  { id:'pr5',  icon:'♛',  nome:'Lenda viva',         desc:'Alcance o Prestígio V',test:s=>s.prestige>=5 }
+];
+let levelUpCb = null;
+let badgeSeq = 0, achToastT = null;
+
+let db = null;
+let nav = { screen:'hoje', moduloId:null, etapaId:null, cursoId:null };
+let focusMode = false;
+let reviewDismissed = false;   // por sessão
+
+/* estado do timer de foco (global, sobrevive a re-renders) */
+let focus = { active:false, phase:'idle', remaining:0, intervalId:null };
+
+/* ---------- Datas ---------- */
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function isDate(s){ return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s); }
+function daysBetween(a,b){ // b - a em dias
+  const da = new Date(a+'T00:00:00'), dbb = new Date(b+'T00:00:00');
+  return Math.round((dbb - da)/86400000);
+}
+
+/* ---------- Persistência ---------- */
+function defaultDb(){ return { cursos:[], modulos:[], streak:{dias_consecutivos:0, ultima_data_estudo:null}, ultima_etapa_acessada:null, config:{meta_diaria:3, focoMin:25}, perfil:{pontos_totais:0, nivel:1, streak_bonus:0, nivel_visto:1, prestige_visto:0, conquistas:[]} }; }
+
+function ensureShape(){
+  if(!db || typeof db !== 'object') db = defaultDb();
+  db.modulos = sanitizeModulos(db.modulos);
+  if(!Array.isArray(db.cursos)) db.cursos = [];
+  db.cursos = db.cursos.filter(c => c && c.id).map(c => ({ id:String(c.id), titulo:String(c.titulo||'Curso') }));
+  const cursoIds = new Set(db.cursos.map(c => c.id));
+  for(const m of db.modulos){ if(m.cursoId != null && !cursoIds.has(m.cursoId)) m.cursoId = null; }
+  if(!db.streak || typeof db.streak !== 'object') db.streak = {dias_consecutivos:0, ultima_data_estudo:null};
+  if(typeof db.streak.dias_consecutivos !== 'number') db.streak.dias_consecutivos = 0;
+  if(typeof db.streak.recorde !== 'number') db.streak.recorde = db.streak.dias_consecutivos || 0;
+  if(!isDate(db.streak.ultima_data_estudo)) db.streak.ultima_data_estudo = db.streak.ultima_data_estudo || null;
+  if(!db.config || typeof db.config !== 'object') db.config = {};
+  if(typeof db.config.meta_diaria !== 'number') db.config.meta_diaria = 3;
+  if(typeof db.config.focoMin !== 'number') db.config.focoMin = 25;
+  if(db.ultima_etapa_acessada === undefined) db.ultima_etapa_acessada = null;
+  if(!db.perfil || typeof db.perfil !== 'object') db.perfil = {};
+  if(typeof db.perfil.streak_bonus !== 'number') db.perfil.streak_bonus = 0;
+  const lvlNow = levelForPoints(pontosTotais()).n;
+  if(typeof db.perfil.nivel_visto !== 'number') db.perfil.nivel_visto = lvlNow;
+  if(typeof db.perfil.prestige_visto !== 'number') db.perfil.prestige_visto = prestigeInfo(pontosTotais()).prestige;
+  if(!Array.isArray(db.perfil.conquistas)) db.perfil.conquistas = [];
+  db.perfil.pontos_totais = pontosTotais();
+  db.perfil.nivel = lvlNow;
+  updateConquistas();
+}
+
+function sanitizeModulos(mods){
+  if(!Array.isArray(mods)) return [];
+  return mods.map((m, mi) => ({
+    id: String(m && m.id ? m.id : 'm'+mi),
+    titulo: String(m && m.titulo ? m.titulo : 'Módulo sem título'),
+    cursoId: (m && m.cursoId != null) ? String(m.cursoId) : null,
+    data_prova: (m && isDate(m.data_prova)) ? m.data_prova : '',
+    etapas: (m && Array.isArray(m.etapas) ? m.etapas : []).map((e, ei) => {
+      const dur = e && e.duracao_estimada != null ? parseInt(e.duracao_estimada,10) : NaN;
+      return {
+        id: String(e && e.id ? e.id : 'e'+mi+'-'+ei),
+        titulo: String(e && e.titulo ? e.titulo : 'Sem título'),
+        conteudo: String(e && e.conteudo != null ? e.conteudo : ''),
+        tipo: (e && ['leitura','exercicio','prova'].includes(e.tipo)) ? e.tipo : 'leitura',
+        duracao_estimada: (!isNaN(dur) && dur > 0) ? dur : null,
+        concluida: !!(e && e.concluida),
+        nota: (e && e.nota != null) ? String(e.nota) : ''
+      };
+    })
+  }));
+}
+
+function load(){
+  try{ const raw = localStorage.getItem(STORAGE_KEY); db = raw ? JSON.parse(raw) : defaultDb(); }
+  catch(e){ db = defaultDb(); }
+  ensureShape();
+  try{ const rn = localStorage.getItem(STATE_KEY); if(rn) nav = Object.assign(nav, JSON.parse(rn)); }catch(e){}
+}
+function saveDb(){ syncPerfil(); localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+function saveNav(){ localStorage.setItem(STATE_KEY, JSON.stringify(nav)); }
+
+/* ---------- Navegação ---------- */
+function go(screen, moduloId, etapaId){
+  nav.screen = screen;
+  if(moduloId !== undefined) nav.moduloId = moduloId;
+  if(etapaId !== undefined) nav.etapaId = etapaId;
+  if(screen !== 'etapa'){ focusMode = false; document.body.classList.remove('focus-mode'); }
+  saveNav();
+  render();
+  window.scrollTo(0,0);
+}
+function goCurso(id){ nav.cursoId = id ? id : null; go('curso'); }
+
+/* ---------- Helpers de dados ---------- */
+function getCurso(id){ return db.cursos.find(c => c.id === id); }
+function cursoModulos(id){ id = id || null; return db.modulos.filter(m => (m.cursoId || null) === id); }
+function getOrCreateCurso(titulo){
+  titulo = String(titulo || '').trim();
+  if(!titulo) return null;
+  let c = db.cursos.find(x => x.titulo.toLowerCase() === titulo.toLowerCase());
+  if(!c){ c = { id:'c'+Date.now()+Math.random().toString(36).slice(2,5), titulo }; db.cursos.push(c); }
+  return c.id;
+}
+function cursoStats(id){
+  let total=0, done=0, mods=0;
+  for(const m of cursoModulos(id)){ mods++; for(const e of (m.etapas||[])){ total++; if(e.concluida) done++; } }
+  return { total, done, mods, pct: total ? Math.round(done/total*100) : 0 };
+}
+function getModulo(id){ return db.modulos.find(m => m.id === id); }
+function getEtapa(mod, id){ return mod ? (mod.etapas||[]).find(e => e.id === id) : null; }
+function moduloPct(mod){
+  const et = mod.etapas || [];
+  if(!et.length) return 0;
+  return Math.round(et.filter(e=>e.concluida).length / et.length * 100);
+}
+function firstUnfinishedIndex(mod){
+  const et = mod.etapas || [];
+  const idx = et.findIndex(e => !e.concluida);
+  return idx === -1 ? et.length : idx;
+}
+function nextUnfinished(){
+  for(const m of db.modulos) for(const e of (m.etapas||[])) if(!e.concluida) return {mod:m, etapa:e};
+  return null;
+}
+function resumeTarget(){
+  if(db.ultima_etapa_acessada){
+    for(const m of db.modulos){
+      const e = (m.etapas||[]).find(x => x.id === db.ultima_etapa_acessada);
+      if(e && !e.concluida) return {mod:m, etapa:e};
+    }
+  }
+  return nextUnfinished();
+}
+function todaySteps(n){
+  const out = [];
+  for(const m of db.modulos) for(const e of (m.etapas||[])){
+    if(!e.concluida){ out.push({mod:m, etapa:e}); if(out.length >= n) return out; }
+  }
+  return out;
+}
+function recentCompleted(n){
+  const done = [];
+  for(const m of db.modulos) for(const e of (m.etapas||[])) if(e.concluida) done.push({mod:m, etapa:e});
+  return done.slice(-n);
+}
+function totalStats(){
+  let total=0, done=0;
+  for(const m of db.modulos) for(const e of (m.etapas||[])){ total++; if(e.concluida) done++; }
+  return {total, done};
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function firstLine(content){
+  const line = String(content||'').replace(/\r\n?/g,'\n').split('\n').map(l=>l.trim()).find(l=>l) || '';
+  return line.replace(/^#+\s*/,'').replace(/^[-*+]\s*/,'').replace(/[*`>#]/g,'').slice(0,90);
+}
+function provaLabel(dateStr){
+  if(!isDate(dateStr)) return null;
+  const d = daysBetween(todayStr(), dateStr);
+  if(d > 1)  return {txt:'Faltam '+d+' dias', d};
+  if(d === 1) return {txt:'Falta 1 dia', d};
+  if(d === 0) return {txt:'É hoje!', d};
+  if(d === -1) return {txt:'Foi ontem', d};
+  return {txt:'Foi há '+(-d)+' dias', d};
+}
+function durLabel(e){ return e.duracao_estimada ? '<span class="badge dur">~'+e.duracao_estimada+' min</span>' : ''; }
+
+/* ---------- Streak ---------- */
+function registerStudyDay(){
+  const today = todayStr();
+  const last = db.streak.ultima_data_estudo;
+  if(last === today) return;
+  if(isDate(last)){
+    const diff = daysBetween(last, today);
+    db.streak.dias_consecutivos = (diff === 1) ? db.streak.dias_consecutivos + 1 : 1;
+  }else{
+    db.streak.dias_consecutivos = 1;
+  }
+  db.streak.ultima_data_estudo = today;
+  db.streak.recorde = Math.max(db.streak.recorde||0, db.streak.dias_consecutivos);
+  if(db.perfil) db.perfil.streak_bonus += PONTOS.STREAK_DIA; // +5 por dia estudado
+}
+
+/* ---------- Markdown mínimo ---------- */
+function mdToHtml(src){
+  src = String(src == null ? '' : src);
+  const lines = src.replace(/\r\n?/g,'\n').split('\n');
+  let html = '', i = 0;
+  function inline(t){
+    t = esc(t);
+    t = t.replace(/`([^`]+)`/g, (m,c)=>'<code>'+c+'</code>');
+    t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    t = t.replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>');
+    t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    return t;
+  }
+  while(i < lines.length){
+    let line = lines[i];
+    if(/^```/.test(line)){ let code=''; i++; while(i<lines.length && !/^```/.test(lines[i])){ code+=lines[i]+'\n'; i++; } i++; html+='<pre><code>'+esc(code)+'</code></pre>'; continue; }
+    let h = line.match(/^(#{1,4})\s+(.*)$/);
+    if(h){ const lv=h[1].length; html+='<h'+lv+'>'+inline(h[2])+'</h'+lv+'>'; i++; continue; }
+    if(/^>\s?/.test(line)){ let q=''; while(i<lines.length && /^>\s?/.test(lines[i])){ q+=lines[i].replace(/^>\s?/,'')+' '; i++; } html+='<blockquote>'+inline(q.trim())+'</blockquote>'; continue; }
+    if(/^\s*[-*+]\s+/.test(line)){ html+='<ul>'; while(i<lines.length && /^\s*[-*+]\s+/.test(lines[i])){ html+='<li>'+inline(lines[i].replace(/^\s*[-*+]\s+/,''))+'</li>'; i++; } html+='</ul>'; continue; }
+    if(/^\s*\d+\.\s+/.test(line)){ html+='<ol>'; while(i<lines.length && /^\s*\d+\.\s+/.test(lines[i])){ html+='<li>'+inline(lines[i].replace(/^\s*\d+\.\s+/,''))+'</li>'; i++; } html+='</ol>'; continue; }
+    if(/^\s*$/.test(line)){ i++; continue; }
+    let para=''; while(i<lines.length && !/^\s*$/.test(lines[i]) && !/^(#{1,4})\s/.test(lines[i]) && !/^```/.test(lines[i]) && !/^\s*[-*+]\s/.test(lines[i]) && !/^\s*\d+\.\s/.test(lines[i]) && !/^>\s?/.test(lines[i])){ para+=(para?' ':'')+lines[i]; i++; }
+    if(para) html+='<p>'+inline(para)+'</p>';
+  }
+  return html;
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+function render(){
+  const app = document.getElementById('app');
+  if(nav.moduloId && !getModulo(nav.moduloId)){ nav.moduloId=null; nav.etapaId=null; if(nav.screen==='modulo'||nav.screen==='etapa') nav.screen='hoje'; }
+  if(nav.screen !== 'etapa'){ document.body.classList.remove('focus-mode'); }
+  updateRankBadge();
+  switch(nav.screen){
+    case 'dashboard': return renderDashboard(app);
+    case 'curso':     return renderCurso(app);
+    case 'modulo':    return renderModulo(app);
+    case 'etapa':     return renderEtapa(app);
+    case 'perfil':    return renderPerfil(app);
+    case 'importar':  return renderImportar(app);
+    default:          return renderHoje(app);
+  }
+}
+
+/* ---------- Hoje (tela padrão) ---------- */
+function renderHoje(app){
+  if(!db.modulos.length){
+    app.innerHTML = `<div class="empty"><h2>Comece por aqui</h2><p class="sub">Importe seu material de estudo para começar.</p><button onclick="go('importar')">Importar conteúdo</button></div>`;
+    return;
+  }
+  const streak = db.streak.dias_consecutivos;
+  const resume = resumeTarget();
+  const meta = db.config.meta_diaria;
+  const lista = todaySteps(meta);
+  const stats = totalStats();
+
+  // provas próximas
+  const provas = db.modulos.map(m => ({m, p:provaLabel(m.data_prova)})).filter(x => x.p && x.p.d >= 0);
+  let provaHtml = provas.length ? provas.map(x =>
+    `<div class="prova-alert" onclick="go('modulo','${x.m.id}')" style="cursor:pointer"><span>📅 Prova · ${esc(x.m.titulo)}</span><span class="days">${x.p.txt}</span></div>`).join('') : '';
+
+  // revisão rápida
+  const recentes = recentCompleted(3);
+  let revisaoHtml = '';
+  if(recentes.length && !reviewDismissed){
+    revisaoHtml = `
+      <div class="section-label">Revisão rápida (últimas concluídas)</div>
+      ${recentes.map(x => `
+        <div class="card" onclick="go('etapa','${x.mod.id}','${x.etapa.id}')">
+          <div class="card-title">${esc(x.etapa.titulo)}</div>
+          <div class="card-meta">${esc(firstLine(x.etapa.conteudo)) || esc(x.mod.titulo)}</div>
+        </div>`).join('')}
+      <button class="ghost" onclick="dismissReview()">Pular revisão →</button>`;
+  }
+
+  // lista do dia
+  let listaHtml;
+  if(lista.length){
+    listaHtml = lista.map((x, i) => `
+      <div class="card" onclick="go('etapa','${x.mod.id}','${x.etapa.id}')">
+        <div class="card-row">
+          <div class="step-dot ${i===0?'current':''}">${i+1}</div>
+          <div style="flex:1">
+            <div class="card-title">${esc(x.etapa.titulo)}</div>
+            <div class="card-meta">${esc(x.mod.titulo)}</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${tipoBadge(x.etapa.tipo)}${durLabel(x.etapa)}</div>
+      </div>`).join('');
+  }else{
+    listaHtml = `<div class="card static"><div class="card-title">🎉 Tudo concluído!</div><div class="card-meta">Você terminou todas as etapas disponíveis.</div></div>`;
+  }
+
+  app.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+      <h1 style="margin:0;flex:1">Hoje</h1>
+      <div class="streak" title="Sequência de dias estudados"><span class="flame">🔥</span> ${streak} dia${streak===1?'':'s'}</div>
+    </div>
+    <p class="sub">${stats.done} de ${stats.total} etapas no total.</p>
+
+    ${resume ? `<button class="big" onclick="openResume()">▶ Continuar de onde parei</button>` : `<div class="card static"><div class="card-title">Nada pendente 🎉</div></div>`}
+
+    ${provaHtml ? `<div class="section-label">Provas se aproximando</div>${provaHtml}` : ''}
+    ${revisaoHtml}
+
+    <div class="section-label" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Meta de hoje</span>
+      <span class="inline-field" style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted)">
+        <label style="margin:0;font-weight:400;font-size:13px" for="metaSel">etapas:</label>
+        <select id="metaSel" onchange="setMeta(this.value)">
+          ${[1,2,3,4,5].map(n=>`<option value="${n}" ${n===meta?'selected':''}>${n}</option>`).join('')}
+        </select>
+      </span>
+    </div>
+    ${listaHtml}
+
+    <hr class="sep">
+    <button class="subtle" onclick="go('dashboard')">Ver todos os cursos</button>`;
+}
+function dismissReview(){ reviewDismissed = true; render(); }
+function setMeta(v){ db.config.meta_diaria = parseInt(v,10)||3; saveDb(); render(); }
+function openResume(){ const t = resumeTarget(); if(t) go('etapa', t.mod.id, t.etapa.id); }
+
+/* Card de módulo (reutilizado no curso) */
+function moduleCard(m){
+  const pct = moduloPct(m);
+  const total = (m.etapas||[]).length;
+  const done = (m.etapas||[]).filter(e=>e.concluida).length;
+  const p = provaLabel(m.data_prova);
+  const provaTag = (p && p.d >= 0) ? `<span class="badge prova" style="margin-left:8px">📅 ${p.txt}</span>` : '';
+  return `
+    <div class="card" onclick="go('modulo','${m.id}')">
+      <div class="card-row">
+        <div style="flex:1"><div class="card-title">${esc(m.titulo)}${provaTag}</div><div class="card-meta">${done} de ${total} etapas concluídas</div></div>
+        <div class="pct">${pct}%</div>
+      </div>
+      <div class="progress ${pct===100?'done':''}"><span style="width:${pct}%"></span></div>
+    </div>`;
+}
+/* Card de curso (agrupador) */
+function courseCard(id, titulo, icon){
+  const s = cursoStats(id);
+  return `
+    <div class="card" onclick="goCurso('${id||''}')">
+      <div class="card-row">
+        <div style="flex:1"><div class="card-title">${icon} ${esc(titulo)}</div><div class="card-meta">${s.mods} módulo${s.mods===1?'':'s'} · ${s.done}/${s.total} etapas</div></div>
+        <div class="pct">${s.pct}%</div>
+      </div>
+      <div class="progress ${s.pct===100&&s.total>0?'done':''}"><span style="width:${s.pct}%"></span></div>
+    </div>`;
+}
+
+/* ---------- Dashboard (cursos) ---------- */
+function renderDashboard(app){
+  if(!db.modulos.length && !db.cursos.length){
+    app.innerHTML = `<div class="empty"><h2>Nenhum curso ainda</h2><p class="sub">Importe seu material ou crie um curso para organizar seus módulos.</p><button onclick="go('importar')">Importar conteúdo</button> <button class="subtle" onclick="novoCurso()">Novo curso</button></div>`;
+    return;
+  }
+  const streak = db.streak.dias_consecutivos;
+  const avulsos = cursoModulos(null);
+  let cards = db.cursos.map(c => courseCard(c.id, c.titulo, '📁')).join('');
+  if(avulsos.length) cards += courseCard(null, 'Avulsos', '🗂️');
+  app.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <h1 style="margin:0;flex:1">Seus cursos</h1>
+      <div class="streak"><span class="flame">🔥</span> ${streak} dia${streak===1?'':'s'}</div>
+    </div>
+    <p class="sub">Cada curso agrupa seus módulos por tema. Ou volte para a <a onclick="go('hoje')" style="color:var(--accent);cursor:pointer">meta de hoje</a>.</p>
+    ${cards || '<p class="sub">Nenhum curso ou módulo ainda.</p>'}
+    <hr class="sep">
+    <button class="subtle" onclick="novoCurso()">＋ Novo curso</button>`;
+}
+
+/* ---------- Curso (agrupa módulos) ---------- */
+function renderCurso(app){
+  const id = nav.cursoId || null;
+  const curso = id ? getCurso(id) : null;
+  if(id && !curso) return go('dashboard');
+  const titulo = curso ? curso.titulo : 'Avulsos';
+  const mods = cursoModulos(id);
+  const s = cursoStats(id);
+  const cards = mods.map(m => moduleCard(m)).join('');
+  app.innerHTML = `
+    <div class="crumbs"><a onclick="go('hoje')">Hoje</a> › <a onclick="go('dashboard')">Cursos</a> › <span>${esc(titulo)}</span></div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <h1 style="margin:0;flex:1">${curso?'📁 ':'🗂️ '}${esc(titulo)}</h1>
+    </div>
+    <div class="progress ${s.pct===100&&s.total>0?'done':''}" style="margin:6px 0"><span style="width:${s.pct}%"></span></div>
+    <p class="sub">${s.mods} módulo${s.mods===1?'':'s'} · ${s.done}/${s.total} etapas · ${s.pct}%</p>
+    ${cards || '<p class="sub">Nenhum módulo neste curso ainda. Importe material ou mova um módulo existente para cá.</p>'}
+    <hr class="sep">
+    <div class="actions">
+      <button class="subtle" onclick="importarPara('${id||''}')">Importar material para este curso</button>
+      ${curso ? `<button class="subtle" onclick="renomearCurso('${curso.id}')">Renomear</button>
+      <button class="danger" onclick="excluirCurso('${curso.id}')">Excluir curso</button>` : ''}
+    </div>`;
+}
+
+/* Ações de curso */
+function novoCurso(){
+  const t = prompt('Nome do novo curso:');
+  if(t && t.trim()){ const id = getOrCreateCurso(t.trim()); saveDb(); goCurso(id); }
+}
+function renomearCurso(id){
+  const c = getCurso(id); if(!c) return;
+  const t = prompt('Renomear curso:', c.titulo);
+  if(t && t.trim()){ c.titulo = t.trim(); saveDb(); render(); }
+}
+function excluirCurso(id){
+  const c = getCurso(id); if(!c) return;
+  const mods = cursoModulos(id);
+  let msg = 'Excluir o curso "'+c.titulo+'"?';
+  if(mods.length) msg += ' Os '+mods.length+' módulo(s) dentro dele voltam para "Avulsos" (não são apagados).';
+  if(!confirm(msg)) return;
+  for(const m of mods) m.cursoId = null;
+  db.cursos = db.cursos.filter(x => x.id !== id);
+  saveDb();
+  go('dashboard');
+}
+function moverModulo(modId, val){
+  const m = getModulo(modId); if(!m) return;
+  if(val === '__new__'){
+    const t = prompt('Nome do novo curso:');
+    if(t && t.trim()) m.cursoId = getOrCreateCurso(t.trim());
+    saveDb(); render(); return;
+  }
+  m.cursoId = val ? val : null;
+  saveDb(); render();
+}
+
+/* ---------- Módulo ---------- */
+function renderModulo(app){
+  const mod = getModulo(nav.moduloId);
+  if(!mod) return go('hoje');
+  const et = mod.etapas || [];
+  const currentIdx = firstUnfinishedIndex(mod);
+  const pct = moduloPct(mod);
+  const p = provaLabel(mod.data_prova);
+
+  let steps = et.map((e, idx) => {
+    const isDone = e.concluida, isCurrent = idx === currentIdx, isLocked = idx > currentIdx;
+    const dotClass = isDone ? 'done' : (isCurrent ? 'current' : '');
+    const dotContent = isDone ? '✓' : (idx+1);
+    const hint = isCurrent ? `<div class="current-hint">Continue aqui</div>` : '';
+    return `
+      <div class="card ${isLocked?'locked':''}" onclick="go('etapa','${mod.id}','${e.id}')">
+        <div class="card-row">
+          <div class="step-dot ${dotClass}">${dotContent}</div>
+          <div style="flex:1"><div class="card-title">${esc(e.titulo)}</div>
+            <div class="card-meta" style="margin-top:4px">${tipoBadge(e.tipo)} ${durLabel(e)} ${e.tipo==='prova'&&e.nota?'<span class="badge ok">Nota: '+esc(e.nota)+'</span>':''}</div>
+          </div>
+        </div>
+        ${hint}
+      </div>`;
+  }).join('');
+
+  const cursoNome = mod.cursoId ? ((getCurso(mod.cursoId)||{}).titulo || 'Avulsos') : 'Avulsos';
+  app.innerHTML = `
+    <div class="crumbs"><a onclick="go('hoje')">Hoje</a> › <a onclick="go('dashboard')">Cursos</a> › <a onclick="goCurso('${mod.cursoId||''}')">${esc(cursoNome)}</a> › <span>${esc(mod.titulo)}</span></div>
+    <h1>${esc(mod.titulo)}</h1>
+    ${(p && p.d>=0) ? `<div class="prova-alert" style="margin-bottom:12px"><span>📅 Prova</span><span class="days">${p.txt}</span></div>` : ''}
+    <div class="progress ${pct===100?'done':''}" style="margin:0 0 6px"><span style="width:${pct}%"></span></div>
+    <p class="sub">${pct}% concluído · ${et.length} etapas</p>
+    ${steps || '<p class="sub">Este módulo não tem etapas.</p>'}
+    <hr class="sep">
+    <div class="inline-field" style="margin-bottom:14px">
+      <label style="margin:0" for="cursoSel">Curso:</label>
+      <select id="cursoSel" onchange="moverModulo('${mod.id}', this.value)">
+        <option value="" ${!mod.cursoId?'selected':''}>Avulsos</option>
+        ${db.cursos.map(c => `<option value="${c.id}" ${mod.cursoId===c.id?'selected':''}>${esc(c.titulo)}</option>`).join('')}
+        <option value="__new__">➕ Novo curso…</option>
+      </select>
+    </div>
+    <button class="danger" onclick="excluirModulo('${mod.id}')">Excluir módulo</button>`;
+}
+
+function excluirModulo(id){
+  const mod = getModulo(id);
+  if(!mod) return;
+  if(!confirm('Excluir o módulo "'+mod.titulo+'"? Todas as etapas e o progresso dele serão apagados. Esta ação não pode ser desfeita.')) return;
+  db.modulos = db.modulos.filter(m => m.id !== id);
+  if(nav.moduloId === id){ nav.moduloId = null; nav.etapaId = null; }
+  saveDb();
+  go('dashboard');
+}
+
+function tipoBadge(tipo){
+  const t = tipo || 'leitura';
+  const cls = t==='prova' ? 'prova' : (t==='exercicio' ? 'exercicio' : '');
+  const label = t==='prova' ? 'Prova' : (t==='exercicio' ? 'Exercício' : 'Leitura');
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+/* ---------- Etapa / Prova ---------- */
+function renderEtapa(app){
+  const mod = getModulo(nav.moduloId);
+  if(!mod) return go('hoje');
+  const et = mod.etapas || [];
+  const idx = et.findIndex(e => e.id === nav.etapaId);
+  if(idx === -1) return go('modulo', mod.id);
+  const etapa = et[idx];
+
+  // registra retomada
+  if(db.ultima_etapa_acessada !== etapa.id){ db.ultima_etapa_acessada = etapa.id; saveDb(); }
+
+  document.body.classList.toggle('focus-mode', focusMode);
+  const isProva = etapa.tipo === 'prova';
+  const isLast = idx === et.length - 1;
+
+  const timerUi = focus.active ? '' : `
+    <div class="timer-start focus-hide">
+      <span class="lbl">⏱ Foco</span>
+      <input type="number" id="focoMin" min="5" max="90" step="5" value="${db.config.focoMin}">
+      <span class="lbl" style="font-weight:400;color:var(--muted)">min + 5 de pausa</span>
+      <button onclick="startFocus()">Iniciar foco</button>
+    </div>`;
+
+  const gradeBox = isProva ? `
+    <div class="grade-box">
+      <label for="notaInput">Nota / resultado</label>
+      <input type="text" id="notaInput" value="${esc(etapa.nota||'')}" placeholder="ex: 8.5, Aprovado, 42/50" oninput="saveNota('${etapa.id}', this.value)">
+      <div class="note">Salvo automaticamente.</div>
+    </div>` : '';
+
+  const mainBtn = etapa.concluida
+    ? `<button class="subtle" onclick="toggleDone('${etapa.id}')">Desmarcar conclusão</button>`
+    : `<button class="success" onclick="markDoneAdvance('${etapa.id}')">Marcar como concluída ${isLast?'':'→'}</button>`;
+
+  const nextBtn = (!isLast) ? `<button class="ghost focus-hide" onclick="go('etapa','${mod.id}','${et[idx+1].id}')">Pular para próxima</button>` : '';
+
+  const focoToggle = focusMode
+    ? `<button class="subtle exit-focus" onclick="toggleFocusMode()">Sair do foco (ESC)</button>`
+    : `<button class="subtle focus-hide" onclick="toggleFocusMode()">🎯 Modo foco</button>`;
+
+  app.innerHTML = `
+    ${focusMode ? focoToggle : ''}
+    <div class="crumbs focus-hide"><a onclick="go('hoje')">Hoje</a> › <a onclick="go('modulo','${mod.id}')">${esc(mod.titulo)}</a> › <span>Etapa ${idx+1}/${et.length}</span></div>
+    <div class="focus-hide" style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap">
+      ${tipoBadge(etapa.tipo)} ${durLabel(etapa)}
+      ${etapa.concluida?'<span class="badge ok">Concluída</span>':''}
+    </div>
+    <h1>${esc(etapa.titulo)}</h1>
+    ${timerUi}
+    ${gradeBox}
+    <div class="content">${mdToHtml(etapa.conteudo) || '<p class="sub">Sem conteúdo.</p>'}</div>
+    <div class="actions">
+      ${mainBtn}
+      ${!focusMode ? focoToggle : ''}
+      ${nextBtn}
+      <button class="ghost focus-hide" onclick="go('modulo','${mod.id}')">Voltar ao módulo</button>
+    </div>`;
+  updateFocusUI();
+}
+
+function saveNota(etapaId, val){ const mod=getModulo(nav.moduloId); const e=getEtapa(mod,etapaId); if(e){ e.nota=val; saveDb(); } }
+function toggleDone(etapaId){ const mod=getModulo(nav.moduloId); const e=getEtapa(mod,etapaId); if(e){ e.concluida=!e.concluida; saveDb(); render(); } }
+function markDoneAdvance(etapaId){
+  const mod = getModulo(nav.moduloId);
+  const et = mod.etapas || [];
+  const idx = et.findIndex(e => e.id === etapaId);
+  if(idx === -1) return;
+  et[idx].concluida = true;
+  registerStudyDay();
+  saveDb();
+  const novas = updateConquistas();
+  const pts = pontosTotais();
+  const nivelAgora = levelForPoints(pts).n;
+  const prestAgora = prestigeInfo(pts).prestige;
+  const subiuNivel = nivelAgora > db.perfil.nivel_visto;
+  const subiuPrest = prestAgora > (db.perfil.prestige_visto||0);
+  if(subiuNivel) db.perfil.nivel_visto = nivelAgora;
+  if(subiuPrest) db.perfil.prestige_visto = prestAgora;
+  saveDb();
+  const avancar = () => {
+    if(idx < et.length - 1) go('etapa', mod.id, et[idx+1].id);
+    else go('modulo', mod.id);
+    if(novas.length) showAchToast(novas);
+  };
+  if(subiuNivel)      showLevelUp(nivelAgora, avancar);
+  else if(subiuPrest) showPrestigeUp(prestAgora, avancar);
+  else                celebrate(avancar);
+}
+
+/* ---------- Modo foco ---------- */
+function toggleFocusMode(){ focusMode = !focusMode; render(); window.scrollTo(0,0); }
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && focusMode){ focusMode = false; render(); }
+});
+
+/* ---------- Comemoração ---------- */
+function celebrate(cb){
+  const el = document.getElementById('celebrate');
+  el.innerHTML = '<div class="check">✓</div>';
+  el.classList.remove('hidden');
+  setTimeout(() => { el.classList.add('hidden'); if(cb) cb(); }, 620);
+}
+
+/* ---------- Pontos, níveis, medalha ---------- */
+function completedBasePoints(){
+  let p = 0;
+  for(const m of db.modulos) for(const e of (m.etapas||[])) if(e.concluida) p += (e.tipo==='prova' ? PONTOS.PROVA : PONTOS.ETAPA);
+  return p;
+}
+function pontosTotais(){ return completedBasePoints() + ((db.perfil && db.perfil.streak_bonus) || 0); }
+function levelForPoints(p){ let cur = LEVELS[0]; for(const L of LEVELS) if(p >= L.min) cur = L; return cur; }
+function nextLevel(p){ const cur = levelForPoints(p); return LEVELS.find(L => L.n === cur.n+1) || null; }
+function syncPerfil(){ if(!db || !db.perfil) return; db.perfil.pontos_totais = pontosTotais(); db.perfil.nivel = levelForPoints(db.perfil.pontos_totais).n; }
+function contarConcluidas(){ let et=0, pr=0; for(const m of db.modulos) for(const e of (m.etapas||[])) if(e.concluida){ if(e.tipo==='prova') pr++; else et++; } return {etapas:et, provas:pr}; }
+
+/* Prestígio infinito após o nível 5 */
+function prestigeInfo(p){
+  if(p < NIVEL5_MIN) return { prestige:0, into:0, step:PRESTIGE_STEP };
+  const over = p - NIVEL5_MIN;
+  return { prestige:Math.floor(over/PRESTIGE_STEP), into:over%PRESTIGE_STEP, step:PRESTIGE_STEP };
+}
+/* Conquistas */
+function computeStats(){
+  const c = contarConcluidas(), pts = pontosTotais();
+  return { etapas:c.etapas, provas:c.provas, streakMax:Math.max(db.streak.recorde||0, db.streak.dias_consecutivos||0), nivel:levelForPoints(pts).n, prestige:prestigeInfo(pts).prestige, pontos:pts };
+}
+function updateConquistas(){
+  if(!db.perfil.conquistas) db.perfil.conquistas = [];
+  const s = computeStats(), novas = [];
+  for(const a of CONQUISTAS){
+    if(!db.perfil.conquistas.includes(a.id) && a.test(s)){ db.perfil.conquistas.push(a.id); novas.push(a); }
+  }
+  return novas;
+}
+function showAchToast(list){
+  if(!list || !list.length) return;
+  const a = list[list.length-1];
+  const el = document.getElementById('achToast');
+  el.innerHTML = `<div style="font-size:26px">${a.icon}</div><div><div style="font-weight:700;font-size:13px">Conquista desbloqueada${list.length>1?' (+'+(list.length-1)+')':''}</div><div style="font-size:13px;color:var(--muted)">${a.nome}</div></div>`;
+  el.classList.remove('hidden'); requestAnimationFrame(()=>el.classList.add('show'));
+  clearTimeout(achToastT);
+  achToastT = setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.classList.add('hidden'),300); }, 3400);
+}
+
+function updateRankBadge(){
+  const el = document.getElementById('rankBadge');
+  if(!el) return;
+  if(!db.modulos.length){ el.classList.add('hidden'); el.innerHTML=''; return; }
+  const pts = pontosTotais(), cur = levelForPoints(pts), pres = prestigeInfo(pts).prestige;
+  el.classList.remove('hidden');
+  el.innerHTML = `${medalSVG(cur.n, {mini:true, prestige:pres})}<span class="rank-txt"><b>${cur.nome}</b><small>${pres>0 ? 'Prestígio '+pres : 'Nível '+cur.n}</small></span>`;
+}
+
+function starPoints(cx, cy, rOut, rIn, spikes){
+  spikes = spikes || 5;
+  let pts = [];
+  for(let i=0;i<spikes*2;i++){
+    const r = i%2===0 ? rOut : rIn;
+    const a = (Math.PI/spikes)*i - Math.PI/2;
+    pts.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1));
+  }
+  return pts.join(' ');
+}
+function prestigeStars(n, T){
+  const show = Math.min(n, 5);
+  let out = '';
+  for(let i=0;i<show;i++){
+    const spread = 15, a = (90 + (i-(show-1)/2)*spread) * Math.PI/180;
+    const x = 60 + 40*Math.cos(a), y = 60 + 40*Math.sin(a);
+    out += `<polygon points="${starPoints(x, y, 5.2, 2.2)}" fill="#fff" stroke="${T.dark}" stroke-width="0.7"/>`;
+  }
+  if(n > 5) out += `<text x="60" y="103" text-anchor="middle" font-size="11" font-weight="800" fill="#fff" stroke="${T.dark}" stroke-width="0.4">×${n}</text>`;
+  return out;
+}
+function medalSVG(level, opts){
+  opts = opts || {};
+  const T = TIERS[level-1];
+  const id = 'b' + (badgeSeq++);
+  const burst = starPoints(60, 60, 57, 40, 12);
+  const gem = starPoints(60, 59, 19, 8.5, 5);
+  const cls = `medal lvl-${level}${opts.animate?' animate':''}${opts.mini?' mini':''}`;
+  return `<div class="${cls}">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <defs>
+        <radialGradient id="${id}d" cx="38%" cy="32%" r="72%">
+          <stop offset="0%" stop-color="${T.light}"/><stop offset="55%" stop-color="${T.base}"/><stop offset="100%" stop-color="${T.dark}"/>
+        </radialGradient>
+        <linearGradient id="${id}r" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${T.light}"/><stop offset="100%" stop-color="${T.dark}"/>
+        </linearGradient>
+        <linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${T.ring}"/><stop offset="100%" stop-color="${T.dark}"/>
+        </linearGradient>
+        <radialGradient id="${id}s" cx="40%" cy="34%" r="75%">
+          <stop offset="0%" stop-color="#ffffff"/><stop offset="58%" stop-color="${T.star}"/><stop offset="100%" stop-color="${T.base}"/>
+        </radialGradient>
+      </defs>
+      <polygon class="burst" points="${burst}" fill="url(#${id}b)" stroke="${T.dark}" stroke-width="1"/>
+      <circle cx="60" cy="60" r="42" fill="url(#${id}r)" stroke="${T.dark}" stroke-width="1.5"/>
+      <circle cx="60" cy="60" r="33" fill="url(#${id}d)" stroke="${T.dark}" stroke-width="1"/>
+      <polygon points="${gem}" fill="url(#${id}s)" stroke="${T.dark}" stroke-width="0.9" stroke-linejoin="round"/>
+      <ellipse cx="52" cy="46" rx="15" ry="8" fill="#ffffff" opacity="0.16"/>
+      ${opts.prestige > 0 ? prestigeStars(opts.prestige, T) : ''}
+      <g class="spk" fill="#fff">
+        <polygon points="${starPoints(97,30,4,1.6)}"/>
+        <polygon points="${starPoints(25,72,3.2,1.3)}"/>
+        <polygon points="${starPoints(92,90,3.6,1.5)}"/>
+      </g>
+    </svg></div>`;
+}
+
+function showLevelUp(level, cb){
+  const ov = document.getElementById('levelUpOverlay');
+  const L = LEVELS[level-1];
+  ov.innerHTML = `<div class="box">
+    <div style="font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--muted)">SUBIU DE NÍVEL</div>
+    ${medalSVG(level, {animate:true})}
+    <h2 style="margin-top:10px">${L.nome}</h2>
+    <p>Nível ${level} alcançado. Seu progresso está rendendo!</p>
+    <button class="big" style="margin-top:12px" onclick="closeLevelUp()">Continuar</button>
+  </div>`;
+  ov.classList.remove('hidden');
+  levelUpCb = cb;
+}
+function showPrestigeUp(prestige, cb){
+  const ov = document.getElementById('levelUpOverlay');
+  ov.innerHTML = `<div class="box">
+    <div style="font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--muted)">PRESTÍGIO</div>
+    ${medalSVG(5, {animate:true, prestige})}
+    <h2 style="margin-top:10px">Prestígio ${prestige}</h2>
+    <p>Diamante ascendido! A evolução continua sem limite.</p>
+    <button class="big" style="margin-top:12px" onclick="closeLevelUp()">Continuar</button>
+  </div>`;
+  ov.classList.remove('hidden');
+  levelUpCb = cb;
+}
+function closeLevelUp(){
+  document.getElementById('levelUpOverlay').classList.add('hidden');
+  const cb = levelUpCb; levelUpCb = null; if(cb) cb();
+}
+
+/* ---------- Timer de foco ---------- */
+function beep(){
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const ac = new AC();
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    o.type='sine'; o.frequency.value=660; g.gain.value=0.001;
+    g.gain.exponentialRampToValueAtTime(0.2, ac.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+0.5);
+    o.start(); o.stop(ac.currentTime+0.5);
+    setTimeout(()=>ac.close(), 700);
+  }catch(e){}
+}
+function mmss(s){ s=Math.max(0,s|0); return String((s/60)|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+
+function startFocus(){
+  const inp = document.getElementById('focoMin');
+  let min = inp ? parseInt(inp.value,10) : db.config.focoMin;
+  if(!(min>0)) min = 25;
+  db.config.focoMin = min; saveDb();
+  focus.active = true; focus.phase = 'focus'; focus.remaining = min*60;
+  if(focus.intervalId) clearInterval(focus.intervalId);
+  focus.intervalId = setInterval(tick, 1000);
+  render(); updateFocusUI();
+}
+function tick(){
+  focus.remaining--;
+  if(focus.remaining > 0){ updateFocusUI(); return; }
+  if(focus.phase === 'focus'){
+    beep();
+    focus.phase = 'break'; focus.remaining = 5*60; // pausa obrigatória
+    updateFocusUI();
+  }else if(focus.phase === 'break'){
+    beep();
+    focus.phase = 'done'; focus.remaining = 0;
+    if(focus.intervalId){ clearInterval(focus.intervalId); focus.intervalId=null; }
+    updateFocusUI();
+  }
+}
+function stopFocus(){
+  if(focus.intervalId){ clearInterval(focus.intervalId); focus.intervalId=null; }
+  focus = { active:false, phase:'idle', remaining:0, intervalId:null };
+  updateFocusUI(); render();
+}
+function endBreak(){ // clica "Continuar" quando a pausa termina
+  focus = { active:false, phase:'idle', remaining:0, intervalId:null };
+  updateFocusUI(); render();
+}
+function updateFocusUI(){
+  const bar = document.getElementById('focusBar');
+  const ov  = document.getElementById('breakOverlay');
+  // barra de contagem (fase de foco)
+  if(focus.active && focus.phase === 'focus'){
+    bar.classList.remove('hidden');
+    bar.innerHTML = `<span>⏱ Foco</span><span class="time">${mmss(focus.remaining)}</span><button onclick="stopFocus()">Parar</button>`;
+  }else{
+    bar.classList.add('hidden');
+  }
+  // overlay de pausa (bloqueia avanço)
+  if(focus.active && focus.phase === 'break'){
+    ov.classList.remove('hidden');
+    ov.innerHTML = `<div class="box"><div style="font-size:34px">☕️</div><h2>Pausa obrigatória</h2><div class="big-time">${mmss(focus.remaining)}</div><p>Levante, respire, beba água.<br>Você não pode avançar até a pausa terminar.</p></div>`;
+  }else if(focus.phase === 'done'){
+    ov.classList.remove('hidden');
+    ov.innerHTML = `<div class="box"><div style="font-size:34px">✅</div><h2>Pausa concluída</h2><p>Pronto para o próximo bloco de foco.</p><button class="big" style="margin-top:14px" onclick="endBreak()">Continuar</button></div>`;
+  }else{
+    ov.classList.add('hidden');
+  }
+}
+
+/* ---------- Perfil ---------- */
+function renderPerfil(app){
+  updateConquistas();
+  const p = pontosTotais();
+  const cur = levelForPoints(p), nxt = nextLevel(p);
+  const pi = prestigeInfo(p);
+  const c = contarConcluidas();
+  const streak = db.streak.dias_consecutivos;
+  let progPct, progLabel;
+  if(cur.n < 5 && nxt){
+    const span = nxt.min - cur.min;
+    progPct = Math.min(100, Math.round((p - cur.min) / span * 100));
+    progLabel = (p - cur.min) + ' / ' + span + ' pts para ' + nxt.nome;
+  }else{
+    progPct = Math.round(pi.into / pi.step * 100);
+    progLabel = pi.into + ' / ' + pi.step + ' pts para Prestígio ' + (pi.prestige + 1);
+  }
+  const titulo = cur.nome + (pi.prestige > 0 ? ' · Prestígio ' + pi.prestige : '');
+  const feitas = db.perfil.conquistas.length;
+  const achHtml = CONQUISTAS.map(a => {
+    const on = db.perfil.conquistas.includes(a.id);
+    return `<div class="ach ${on?'on':''}" title="${esc(a.desc)}">
+      <div class="ach-ic">${on ? a.icon : '🔒'}</div>
+      <div class="ach-nm">${esc(a.nome)}</div>
+      <div class="ach-ds">${esc(a.desc)}</div>
+    </div>`;
+  }).join('');
+  app.innerHTML = `
+    <div class="crumbs"><a onclick="go('hoje')">Hoje</a> › <span>Perfil</span></div>
+    ${medalSVG(cur.n, {animate:true, prestige:pi.prestige})}
+    <h1 style="text-align:center;margin-top:16px">${titulo}</h1>
+    <p class="sub" style="text-align:center;margin-bottom:14px">Nível ${cur.n} · ${p} pontos no total</p>
+    <div class="progress"><span style="width:${progPct}%"></span></div>
+    <p class="note" style="text-align:center;margin:8px 0 22px">${progLabel}</p>
+    <div style="display:flex;justify-content:center;margin-bottom:20px">
+      <div class="streak"><span class="flame">🔥</span> ${streak} dia${streak===1?'':'s'} · recorde ${db.streak.recorde||0}</div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-num">${c.etapas}</div><div class="stat-lbl">Etapas concluídas</div></div>
+      <div class="stat"><div class="stat-num">${c.provas}</div><div class="stat-lbl">Provas feitas</div></div>
+    </div>
+    <div class="section-label">Conquistas (${feitas}/${CONQUISTAS.length})</div>
+    <div class="ach-grid">${achHtml}</div>
+    <p class="note" style="margin-top:20px;text-align:center">+${PONTOS.ETAPA} por etapa · +${PONTOS.PROVA} por prova · +${PONTOS.STREAK_DIA} por dia de streak</p>`;
+}
+
+/* ---------- Importar ---------- */
+let importCursoPrefill = null; // curso pré-selecionado ao vir de uma tela de curso
+function importarPara(id){ importCursoPrefill = id ? id : ''; go('importar'); }
+function renderImportar(app){
+  const pre = importCursoPrefill; importCursoPrefill = null;
+  const preNome = (pre && getCurso(pre)) ? getCurso(pre).titulo : (pre === '' ? '' : '');
+  app.innerHTML = `
+    <div class="crumbs"><a onclick="go('hoje')">Hoje</a> › <span>Importar conteúdo</span></div>
+    <h1>Importar conteúdo</h1>
+    <p class="sub">Cole um JSON estruturado (ou carregue um arquivo .json/.md). Os módulos são adicionados aos existentes.</p>
+    <div id="importMsg"></div>
+    <div class="field">
+      <label for="importCurso">Curso (opcional)</label>
+      <input type="text" id="importCurso" list="cursosList" value="${esc(preNome)}" placeholder="Ex: Arquitetura de ofertas em 2026">
+      <datalist id="cursosList">${db.cursos.map(c=>`<option value="${esc(c.titulo)}">`).join('')}</datalist>
+      <div class="note">Todos os módulos importados vão para este curso (criado se não existir). Deixe vazio para "Avulsos" — ou use o campo <code>curso</code> por módulo no JSON.</div>
+    </div>
+    <div class="field">
+      <label for="importText">Conteúdo (JSON)</label>
+      <textarea id="importText" placeholder='{\n  "modulos": [\n    {\n      "id": "m1",\n      "titulo": "Meu Módulo",\n      "data_prova": "2026-09-01",\n      "etapas": [\n        { "id": "e1", "titulo": "Introdução", "conteudo": "# Olá\\n\\nTexto...", "tipo": "leitura", "duracao_estimada": 8, "concluida": false }\n      ]\n    }\n  ]\n}'></textarea>
+      <input class="file-input" type="file" id="importFile" accept=".json,.md,.txt,application/json,text/markdown" onchange="loadFileIntoTextarea(event)">
+      <div class="note">Campos opcionais: <code>data_prova</code> (YYYY-MM-DD) por módulo e <code>duracao_estimada</code> (min) por etapa. Arquivos .md/.txt sem JSON viram um módulo de leitura única.</div>
+    </div>
+    <div class="actions">
+      <button onclick="doImport()">Adicionar ao app</button>
+      <button class="subtle" onclick="go('hoje')">Cancelar</button>
+    </div>
+    <hr class="sep">
+    <h2>Backup e restauração</h2>
+    <p class="sub">Exporte todos os seus dados (inclui streak e progresso) ou restaure a partir de um backup (substitui tudo).</p>
+    <div class="actions">
+      <button class="subtle" onclick="exportBackup()">Exportar backup (.json)</button>
+      <input type="file" id="restoreFile" accept=".json,application/json" class="hidden" onchange="restoreBackup(event)">
+      <button class="subtle" onclick="document.getElementById('restoreFile').click()">Restaurar backup…</button>
+    </div>`;
+}
+function importMsg(text, ok){ const el=document.getElementById('importMsg'); if(el) el.innerHTML=`<div class="msg ${ok?'ok':'err'}">${esc(text)}</div>`; }
+function loadFileIntoTextarea(ev){
+  const file = ev.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = e => { document.getElementById('importText').value = e.target.result; importMsg('Arquivo "'+file.name+'" carregado no campo. Revise e clique em Adicionar.', true); };
+  r.readAsText(file);
+}
+function extractModulos(parsed){
+  if(Array.isArray(parsed)) return parsed;
+  if(parsed && Array.isArray(parsed.modulos)) return parsed.modulos;
+  if(parsed && parsed.titulo && Array.isArray(parsed.etapas)) return [parsed];
+  return null;
+}
+function dedupeIds(mods){
+  const used = new Set(db.modulos.map(m=>m.id));
+  mods.forEach(m => { let id=m.id; while(used.has(id)) id = id+'-'+Math.random().toString(36).slice(2,5); m.id=id; used.add(id); });
+  return mods;
+}
+function doImport(){
+  const text = document.getElementById('importText').value.trim();
+  if(!text){ importMsg('Cole um conteúdo ou carregue um arquivo primeiro.', false); return; }
+  const cursoInput = (document.getElementById('importCurso')||{}).value || '';
+  const cursoFixo = cursoInput.trim() ? getOrCreateCurso(cursoInput.trim()) : null;
+  let rawMods = null;
+  try{ rawMods = extractModulos(JSON.parse(text)); }catch(e){ rawMods = null; }
+  if(!rawMods){
+    const fl = (text.split('\n').find(l=>l.trim()) || 'Material importado').replace(/^#+\s*/,'').trim();
+    rawMods = [{ id:'m'+Date.now(), titulo:fl.slice(0,80), etapas:[{ id:'e1', titulo:fl.slice(0,80), conteudo:text, tipo:'leitura', concluida:false }] }];
+  }
+  const mods = dedupeIds(sanitizeModulos(rawMods));
+  // Resolve o curso de cada módulo: campo do formulário > campo "curso" no JSON > cursoId no JSON > Avulsos
+  mods.forEach((m, i) => {
+    const rc = (rawMods[i] && typeof rawMods[i].curso === 'string') ? rawMods[i].curso.trim() : '';
+    if(cursoFixo) m.cursoId = cursoFixo;
+    else if(rc) m.cursoId = getOrCreateCurso(rc);
+    // senão mantém o cursoId já vindo do sanitize (JSON) ou null
+  });
+  db.modulos = db.modulos.concat(mods);
+  saveDb();
+  const nEt = mods.reduce((s,m)=>s+m.etapas.length,0);
+  const destino = cursoFixo ? getCurso(cursoFixo) : null;
+  importMsg(mods.length+' módulo(s) e '+nEt+' etapa(s) adicionados'+(destino?' em "'+destino.titulo+'"':'')+'.', true);
+  document.getElementById('importText').value = '';
+  setTimeout(()=> cursoFixo ? goCurso(cursoFixo) : go('dashboard'), 900);
+}
+
+/* ---------- Backup / Restore ---------- */
+function exportBackup(){
+  const blob = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'estudos-backup-'+todayStr()+'.json';
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function restoreBackup(ev){
+  const file = ev.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try{
+      const parsed = JSON.parse(e.target.result);
+      if(!parsed || !Array.isArray(parsed.modulos)) throw new Error('formato');
+      if(!confirm('Restaurar backup vai SUBSTITUIR todos os dados atuais. Continuar?')){ ev.target.value=''; return; }
+      db = parsed; ensureShape(); saveDb();
+      nav = { screen:'hoje', moduloId:null, etapaId:null }; saveNav();
+      reviewDismissed = false; render();
+    }catch(err){ importMsg('Arquivo de backup inválido.', false); alert('Arquivo de backup inválido.'); }
+    ev.target.value='';
+  };
+  r.readAsText(file);
+}
+
+/* ---------- Boot ---------- */
+load();
+render();
+</script>
+</body>
+</html>
